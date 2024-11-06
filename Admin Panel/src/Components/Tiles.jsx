@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useParams, useLocation } from "react-router-dom"; //use location is being used to get categories
+import { useParams,useLocation } from "react-router-dom";
 import ImageForm from './ImageForm';
 
 const Tiles = () => {
@@ -8,12 +8,14 @@ const Tiles = () => {
     const [showModal, setShowModal] = useState(false);
     const [newImage, setNewImage] = useState(null);
 
-    const { categoryType } = useParams();
-    console.log(useLocation().pathname.split("/")[1])
+    const { categoryType,photowalkType, eventType } = useParams();
+    const id =  categoryType || photowalkType ||  eventType;
+    const type = useLocation().pathname.split("/")[1];
+
     //Fetch images from that particular category
     useEffect(() => {
         axios
-            .get(`/api/admin/categories/${categoryType}`)
+            .get(`/api/admin/${type}/item/${id}`)
 
             .then((response) => setImages(response.data))
             .catch((error) => console.error(error));
@@ -22,13 +24,13 @@ const Tiles = () => {
     // Delete the image
     const handleDelete = async (imageId) => {
         try {
-            await axios.delete(`/api/admin/categories/${imageId}`);
+            await axios.delete(`/api/admin/${type}/${imageId}`);
             setImages(images.filter((img) => img.id !== imageId));
         } catch (error) {
             console.error('Error deleting image:', error);
         }
     };
-    //console.log(images);
+    console.log(images);
     const handleFileChange = (e) => {
         setNewImage(e.target.files[0]);
     };
@@ -36,32 +38,35 @@ const Tiles = () => {
     // Add an images
     const handleAddImage = async () => {
         if (!newImage) return;
-
+    
         const formData = new FormData();
         formData.append('image', newImage);
-
+        formData.append('itemId', id);  // Include the id here
+    
         try {
-            await axios.post(`/api/admin/categories/upload/${categoryType}`, formData, {
+            await axios.post(`/api/admin/${type}/upload/${id}`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
             });
-            console.log("Uploaded")
+            console.log("Uploaded");
+    
             // Refresh images after adding a new one
-            const response = await axios.get(`/api/admin/categories/${categoryType}`);
+            const response = await axios.get(`/api/admin/${type}/item/${id}`);
             setImages(response.data);
             setNewImage(null);
             setShowModal(false);
-            console.log("updated")
+            console.log("Updated");
             
         } catch (error) {
             console.error('Error adding image:', error);
         }
     };
+    
     // console.log(images);
     return (
         <div className="p-4 flex flex-col">
-            <h1 className='text-3xl mx-auto mt-10 md:mb-20 mb-10 font-display font-bold border-b-2 sm:text-6xl '> {categoryType||"loading"} </h1>
+            <h1 className='text-3xl mx-auto mt-10 md:mb-20 mb-10 font-display font-bold border-b-2 sm:text-6xl '> Gallery </h1>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 w-5/6 m-auto">
                 {images.map((image) => (
                     <div key={image.id} className="relative group h-52  hover:brightness-100 overflow-hidden rounded-lg shadow-lg">

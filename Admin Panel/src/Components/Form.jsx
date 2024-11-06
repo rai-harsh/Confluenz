@@ -5,8 +5,9 @@ const Form = (props) => {
     const [formData, setFormData] = useState({
     name:'',
     description: '',
-    location: '',
-    genre: ''
+    location: '',   //Stores venue for event
+    genre: '',
+    date:''
 });
 const [file, setFile] = useState(null);
 
@@ -23,25 +24,27 @@ const handleFileChange = (e) => {
 };
 
   // Handle form submission
-const handleSubmit = (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    
-
-    // Prepare form data for upload
     const uploadData = new FormData();
     uploadData.append('description', formData.description);
     uploadData.append('location', formData.location);
     uploadData.append('genre', formData.genre);
     uploadData.append('name', formData.name);
+    uploadData.append('date', formData.date);
     if (file) uploadData.append('file', file);
-    // Submit to backend endpoint
-    axios.post('/api/uploadPhotowalk', uploadData)
-    .then(response => {
-        alert('Image uploaded successfully!');
-        console.log(response.data);
-    })
-    .catch(error => console.error('Error uploading image:', error));
+
+    axios.post(`/api/admin/add${props.category}`, uploadData)
+        .then(response => {
+            alert('Image uploaded successfully!');
+            props.handleUpload(); // Trigger the update only after success
+        })
+        .catch(error => {
+            console.error('Error uploading image:', error);
+            alert('Image upload failed. Please try again.');
+        });
 };
+
 
 return (
     <div className="max-w-lg mx-auto mt-10 p-6 bg-white  shadow-md rounded-lg">
@@ -108,8 +111,19 @@ return (
             
           />
         </div>
+        <div>
+        <label className="block text-gray-700">Date</label>
+        <input
+            type="date"
+            name="date"
+            value={formData.date}
+            onChange={handleInputChange}
+            className="w-full mt-1 p-2 border border-gray-300 rounded-md"
+            required
+        />
+        </div>
         
-        <button type="submit" className="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 transition duration-150">
+        <button  type="submit" className="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 transition duration-150">
           Upload {props.category}
         </button>
       </form>
