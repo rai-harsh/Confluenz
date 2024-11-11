@@ -175,6 +175,7 @@ export default function MemberForm() {
                             value={formData.description}
                             onChange={handleChange}
                             className="px-4 py-2 border rounded-md"
+                            maxLength={100}
                         />
                     </div>
                     <div className="flex flex-col">

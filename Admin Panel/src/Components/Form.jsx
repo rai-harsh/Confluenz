@@ -34,7 +34,7 @@ const handleFileChange = (e) => {
     uploadData.append('date', formData.date);
     if (file) uploadData.append('file', file);
 
-    axios.post(`/api/admin/add${props.category}`, uploadData)
+    axios.post(`/api/admin/cover/add${props.category}`, uploadData)
         .then(response => {
             alert('Image uploaded successfully!');
             props.handleUpload(); // Trigger the update only after success
@@ -91,13 +91,14 @@ return (
         
         <div>
         <label className="block text-gray-700">Description</label>
-        <input
+        <textarea
             type="text"
             name="description"
             value={formData.description}
             onChange={handleInputChange}
             className="w-full mt-1 p-2 border border-gray-300 rounded-md"
             required
+            maxLength={100}
         />
         </div>
         

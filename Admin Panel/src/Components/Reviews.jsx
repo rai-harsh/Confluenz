@@ -84,6 +84,7 @@ const Reviews = () => {
                     onChange={(e) => setReviewText(e.target.value)}
                     placeholder="Write your review..."
                     className="p-2 border border-gray-300 rounded-md"
+                    maxLength={100}
                 />
                 <input
                     type="number"
@@ -126,7 +127,6 @@ const Reviews = () => {
                                     setUsername(review.username); // Prefill username
                                     setReviewText(review.review_text);
                                     setRating(review.rating);
-                                    setFile(review.profile_pic);
                                 }}
                                 className="bg-yellow-500 text-white px-3 py-1 rounded-md hover:bg-yellow-600"
                             >

@@ -1,5 +1,5 @@
 import React from "react";
-import { Link } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 
 export default function Navbar() {
     const [isMenuOpen, setMenuOpen] = React.useState(false);
@@ -14,6 +14,15 @@ export default function Navbar() {
         setMenuOpen(false);
     }
 
+    const navLinkClasses = ({ isActive }) => `
+  relative text-gray-300 font-display after:content-[''] after:absolute after:right-0 after:-bottom-1 
+  after:h-[2px] after:bg-gray-300 after:transition-all after:duration-200 leading-4 
+  ${isActive ? 'after:w-full' : 'after:w-0'}
+`;
+
+    const mobileNavLinkClasses= ({isActive})=> `font-medium text-slate-300 border-b-2 border-slate-300 hover:bg-slate-500 p-4 rounded-md
+    ${isActive ? `bg-slate-500` : ``}`;
+
     return (
         <>
             {/* Overlay for mobile menu */}
@@ -26,33 +35,31 @@ export default function Navbar() {
 
             {/* Navbar */}
             <nav className="bg-local flex p-4 justify-between items-center bg-gradient-to-b from-gray-800 via-gray-900 to-black border-b-2 border-gray-800">
-                <Link to="/photowalks" className="min-w-fit">
+                <NavLink to="/photowalks" className="min-w-fit">
                     <img src="./src/assets/conf.png" alt="conf-logo" className="w-20" />
-                </Link>
-                
-                {/* Desktop menu links */}
+                </NavLink>
+
+                {/* Desktop menu NavLinks */}
                 <div id="nav-menu" className="hidden md:flex gap-10">
-                    <Link to="/" className="relative text-gray-300 font-display leading-4 hover:underline">
+                    <NavLink to="/" className={navLinkClasses}>
                         Home
-                    </Link>
-                    <Link to="/categories" className="relative text-gray-300 font-display leading-4 hover:underline">
+                    </NavLink>
+                    <NavLink to="/categories" className={navLinkClasses}>
                         Categories
-                    </Link>
-                    <Link to="/photowalks" className="relative text-gray-300 font-display leading-4 hover:underline">
+                    </NavLink>
+                    <NavLink to="/photowalks" className={navLinkClasses}>
                         Photowalks
-                    </Link>
-                    <Link to="/events" className="relative text-gray-300 font-display leading-4 hover:underline">
+                    </NavLink>
+                    <NavLink to="/events" className={navLinkClasses}>
                         Events
-                    </Link>
-                    <Link to="/member-form" className="relative text-gray-300 font-display leading-4 hover:underline">
+                    </NavLink>
+                    <NavLink to="/member-form" className={navLinkClasses}>
                         Member
-                    </Link>
+                    </NavLink>
                 </div>
 
-                {/* Instagram link (visible only on desktop) */}
-                <Link to="/instagram" className="hover:scale-125 transition-all duration-200 hidden md:inline">
-                    <i className="fa-brands fa-instagram text-white w-12 fa-xl"></i>
-                </Link>
+                {/* Instagram NavLink (visible only on desktop) */}
+                <div><i className="fa-solid fa-lock text-white  text-2xl"></i></div>
 
                 {/* Mobile menu toggle button */}
                 <button id="toggle" className="m-1 md:hidden" onClick={toggleMenu}>
@@ -65,30 +72,30 @@ export default function Navbar() {
                     className={`${isMenuOpen ? "animate-slideIn" : hasTog ? "animate-slideOut" : "hidden"
                         } inset-0 md:hidden bg-black z-40 flex flex-col px-6 pb-8 pt-3 w-2/3 min-w-fit fixed h-screen`}
                 >
-                    <Link to="/photowalks" onClick={closeMenu} className="min-w-fit">
+                    <NavLink to="/photowalks" onClick={closeMenu} className="min-w-fit">
                         <img src="./src/assets/conf.png" alt="conf-logo" className="w-20" />
-                    </Link>
+                    </NavLink>
                     <div className="w-full h-1 bg-slate-300 mt-4 rounded-full"></div>
 
-                    {/* Mobile menu links */}
-                    <Link to="/" onClick={closeMenu} className="font-medium text-slate-300 border-b-2 border-slate-300 hover:bg-slate-500 p-4 rounded-md">
+                    {/* Mobile menu NavLinks */}
+                    <NavLink to="/" onClick={closeMenu} className={mobileNavLinkClasses}>
                         Home
-                    </Link>
-                    <Link to="/portfolio" onClick={closeMenu} className="font-medium text-slate-300 border-b-2 border-slate-300 hover:bg-slate-500 p-4 rounded-md">
-                        Portfolio
-                    </Link>
-                    <Link to="/photowalks" onClick={closeMenu} className="font-medium text-slate-300 border-b-2 border-slate-300 hover:bg-slate-500 p-4 rounded-md">
+                    </NavLink>
+                    <NavLink to="/categories" onClick={closeMenu} className={mobileNavLinkClasses}>
+                        Categories
+                    </NavLink>
+                    <NavLink to="/photowalks" onClick={closeMenu} className={mobileNavLinkClasses}>
                         Photowalks
-                    </Link>
-                    <Link to="/events" onClick={closeMenu} className="font-medium text-slate-300 border-b-2 border-slate-300 hover:bg-slate-500 p-4 rounded-md">
+                    </NavLink>
+                    <NavLink to="/events" onClick={closeMenu} className={mobileNavLinkClasses}>
                         Events
-                    </Link>
-                    <Link to="/member-form" onClick={closeMenu} className="font-medium text-slate-300 border-b-2 border-slate-300 hover:bg-slate-500 p-4 rounded-md">
+                    </NavLink>
+                    <NavLink to="/member-form" onClick={closeMenu} className={mobileNavLinkClasses}>
                         Members
-                    </Link>
-                    <Link to="/contact" onClick={closeMenu} className="font-medium text-slate-300 border-b-2 border-slate-300 hover:bg-slate-500 p-4 rounded-md">
+                    </NavLink>
+                    {/* <NavLink to="/contact" onClick={closeMenu} className={mobileNavLinkClasses}>
                         Contact Us
-                    </Link>
+                    </NavLink> */}
                 </div>
             </nav>
         </>

@@ -47,27 +47,34 @@ async function getimages() {
 
 app.get("/api/home", async (req, res) => {
   try {
-    const { cpImages, monoImages } = await getimages();
-     // Optional: Log to check the data
-    res.json({ cpImages, monoImages });  // Send both sets of images in the response
+    const result = await db.query("SELECT * from gallery")
+
+    // console.log(result.rows)
+    res.send(result.rows);  // Send both sets of images in the response
+  } catch (error) {
+    console.error("Error fetching images:", error);
+    res.status(500).send("Error fetching images");
+  }
+});
+app.get("/api/get/categoryCovers", async (req, res) => {
+  try {
+    const result = await db.query("SELECT * from categories")
+
+    // console.log(result.rows)
+    res.send(result.rows);  // Send both sets of images in the response
   } catch (error) {
     console.error("Error fetching images:", error);
     res.status(500).send("Error fetching images");
   }
 });
 
-async function  getPhotowalk(){
-  const result = await db.query(
-    "SELECT *  FROM photowalk "
-  )
-  return result.rows;
-  
-}
+
 app.get("/api/Photowalks", async (req, res) => {
   try {
-    const pw = await getPhotowalk();
-     // Optional: Log to check the data
-    res.json(pw);  // Send both sets of images in the response
+      const result = await db.query(
+      "SELECT *  FROM photowalk "
+    )
+    res.json(result.rows);  // Send both sets of images in the response
   } catch (error) {
     console.error("Error fetching images:", error);
     res.status(500).send("Error fetching images");
@@ -75,19 +82,14 @@ app.get("/api/Photowalks", async (req, res) => {
 });
 
 // Get the data from a single photowalk
-async function getWalkData(a){
-  const result = await db.query(
-    "SELECT photowalk.dates ,photowalk.cover_img ,photowalk.locations, photowalk.description, images.image_url FROM photowalk JOIN images ON images.type_id = photowalk.id WHERE images.type = 'Photowalk' AND photowalk.id = $1",
-    [a]
-  );
-  return result.rows;
-}
+
 app.get("/api/Photowalks/:walkId", async (req, res) => {
   try {
     const walkId = req.params.walkId;
-    const walk = await getWalkData(walkId);
-     // Optional: Log to check the data
-    res.json(walk);  // Send both sets of images in the response
+    var result = await db.query("SELECT * FROM photowalk WHERE id = $1",
+      [walkId]);
+      res.send(result.rows);
+       // Send both sets of images in the response
   } catch (error) {
     console.error("Error fetching images:", error);
     res.status(500).send("Error fetching images");
@@ -95,18 +97,12 @@ app.get("/api/Photowalks/:walkId", async (req, res) => {
 });
 
 // Get a list of Events
-async function  getEvents(){
-  const result = await db.query(
-    "SELECT id,venue,name,dates,cover_img  FROM events "
-  )
-  return result.rows;
-  
-}
 app.get("/api/events", async (req, res) => {
   try {
-    const pw = await getEvents();
-     // Optional: Log to check the data
-    res.json(pw);  // Send both sets of images in the response
+    const result = await db.query(
+      "SELECT id,venue,name,date,cover_img  FROM events "
+    )
+    res.send(result.rows);  // Send both sets of images in the response
   } catch (error) {
     console.error("Error fetching images:", error);
     res.status(500).send("Error fetching images");
@@ -114,37 +110,82 @@ app.get("/api/events", async (req, res) => {
 });
 
 // Get the entire data about the Event
-async function getEventData(a){
-  const result = await db.query(
-    "SELECT events.name , events.dates ,events.cover_img ,events.venue, events.description, images.image_url FROM events JOIN images ON images.type_id = events.id WHERE images.type = 'Event' AND events.id = $1",
-    [a]
-  );
-  return result.rows;
-}
 app.get("/api/Events/:eventId", async (req, res) => {
   try {
-
     const eventId = req.params.eventId;
-    const event = await getEventData(eventId);
-    console.log(event);
-     // Optional: Log to check the data
-    res.json(event);  // Send both sets of images in the response
+    var result = await db.query("SELECT * FROM events WHERE id = $1",
+      [eventId]);
+      res.send(result.rows);
+       // Send both sets of images in the response
   } catch (error) {
     console.error("Error fetching images:", error);
     res.status(500).send("Error fetching images");
   }
 });
-app.get("/api/typeId", async(req,res)=>{
-  var result = await db.query("SELECT venue,id  from events");
-  const events = result.rows;
-  var result = await db.query("SELECT locations,id from photowalk");
-  const walk = result.rows;
-  res.send({events,walk});
-})
-app.post('/api/uploadImage', upload.single('file'), (req, res) => {
-  console.log(req.body); // Logs text data from the form
-  console.log(req.file); // Logs the file information
-  res.send(req.body);
+
+app.get("/api/images/Events/:eventId", async (req, res) => {
+  try {
+    const eventId = req.params.eventId;
+    var result = await db.query("SELECT * FROM event_images WHERE eventid = $1",
+      [eventId]);
+      res.send(result.rows);
+       // Send both sets of images in the response
+  } catch (error) {
+    console.error("Error fetching images:", error);
+    res.status(500).send("Error fetching images");
+  }
+});
+app.get("/api/images/Photowalks/:walkId", async (req, res) => {
+  try {
+    const walkId = req.params.walkId;
+    var result = await db.query("SELECT * FROM photowalk_images WHERE photowalkid = $1",
+      [walkId]);
+      res.send(result.rows);
+       // Send both sets of images in the response
+  } catch (error) {
+    console.error("Error fetching images:", error);
+    res.status(500).send("Error fetching images");
+  }
+});
+  app.get("/api/get/core", async (req, res) => {
+    try {
+      var result = await db.query("SELECT * FROM society ");
+        res.send(result.rows);
+        // Send both sets of images in the response
+    } catch (error) {
+      console.error("Error fetching images:", error);
+      res.status(500).send("Error fetching images");
+    }
+  });
+
+  app.get("/api/category/item/:id",async (req,res)=>{
+    const { id } = req.params;
+    
+    var result = await db.query("SELECT * from images WHERE category_id = $1 ",
+      [id]); 
+    var cat = result.rows;
+    res.send(cat);
+  })
+
+  app.get('/api/categories', async (req, res) => {
+    try {
+        const result = await db.query('SELECT category FROM categories ');
+        res.json(result.rows); // Send only the category names
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Failed to fetch categories' });
+    }
+});
+
+app.get('/api/get/reviews', async (req, res) => {
+  try {
+    const result = await db.query("SELECT * FROM reviews ORDER BY created_at DESC");
+    console.log(result.rows)
+    res.send(result.rows);
+  } catch (error) {
+    console.error("Error fetching reviews:", error);
+    res.status(500).send("Error fetching reviews");
+  }
 });
 
 app.listen(port, () => {
