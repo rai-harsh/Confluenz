@@ -1,10 +1,14 @@
 import express from "express";
 import bodyParser from "body-parser";
-import pg from "pg";
 import multer from 'multer';
 import path from "path"
 import { fileURLToPath } from 'url';
 import fs from 'fs';
+import cookieParser from "cookie-parser";
+
+
+import { authenticateToken } from './middleware/authMiddleware.js';
+import db from './db/index.js';
 
 //Selecting the upload path
 const __filename = fileURLToPath(import.meta.url);
@@ -79,14 +83,6 @@ const app = express();
 const port = process.env.PORT||4000;
 app.use(express.json());
 
-const db = new pg.Client({
-    user: "postgres",
-    host: "localhost",
-    database: "Confluenz",
-    password: "120422",
-    port: 5432,
-  });
-  db.connect();
 
 app.use(bodyParser.urlencoded({ extended: true }));
 
@@ -94,10 +90,14 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
 // Serving these folders with correct static path
 app.use('/uploads', express.static(baseUploadPath));
+app.use(cookieParser());
+
+
+
 
 
 // *--------------------------------------------------------------------DELETING IMAGES FRORM TILES
-app.delete("/api/admin/categories/:id", async (req, res) => {
+app.delete("/api/admin/categories/:id",authenticateToken, async (req, res) => {
   const id = req.params.id;
   const result = await db.query("SELECT image_url FROM images WHERE id = $1", [id]);
   if (result.rows.length > 0) {
@@ -107,7 +107,7 @@ app.delete("/api/admin/categories/:id", async (req, res) => {
   res.send("Deleted");
 });
 
-app.delete("/api/admin/photowalks/:id", async (req, res) => {
+app.delete("/api/admin/photowalks/:id",authenticateToken, async (req, res) => {
   const id = req.params.id;
   const result = await db.query("SELECT image_url FROM photowalk_images WHERE id = $1", [id]);
   if (result.rows.length > 0) {
@@ -117,7 +117,7 @@ app.delete("/api/admin/photowalks/:id", async (req, res) => {
   res.send("Deleted");
 });
 
-app.delete("/api/admin/events/:id", async (req, res) => {
+app.delete("/api/admin/events/:id",authenticateToken, async (req, res) => {
   const id = req.params.id;
   const result = await db.query("SELECT image_url FROM event_images WHERE id = $1", [id]);
   if (result.rows.length > 0) {
@@ -131,7 +131,7 @@ app.delete("/api/admin/events/:id", async (req, res) => {
 
 //Uploading in category
 
-app.post('/api/admin/categories/upload/:category', upload.single('image'), async function (req, res, next) {
+app.post('/api/admin/categories/upload/:category', upload.single('image'),authenticateToken, async function (req, res, next) {
   
   const { itemId } = req.body;
   const result = await db.query("SELECT category from categories WHERE id = $1",
@@ -153,7 +153,7 @@ app.post('/api/admin/categories/upload/:category', upload.single('image'), async
 })
 
 //uploading in photowalks
-app.post('/api/admin/photowalks/upload/:walkId', upload.single('image'), async function (req, res, next) {
+app.post('/api/admin/photowalks/upload/:walkId', upload.single('image'),authenticateToken, async function (req, res, next) {
   const { walkId } = req.params;
   console.log(walkId)  ;  
   
@@ -175,7 +175,7 @@ app.post('/api/admin/photowalks/upload/:walkId', upload.single('image'), async f
 })
 
 // uploading in images
-app.post('/api/admin/events/upload/:eventId', upload.single('image'), async function (req, res, next) {
+app.post('/api/admin/events/upload/:eventId', upload.single('image'),authenticateToken, async function (req, res, next) {
   const { eventId } = req.params;
   //console.log(walkId)  
   
@@ -198,7 +198,7 @@ app.post('/api/admin/events/upload/:eventId', upload.single('image'), async func
 
 //*------------------------------------------------------------- Universal GET route for categories, events, and photowalks
   // Serving fetch in items.jsx
-app.get("/api/admin/:type", async (req, res) => {
+app.get("/api/admin/:type",authenticateToken, async (req, res) => {
   const { type } = req.params;
   let query;
 
@@ -272,7 +272,7 @@ app.post("/api/admin/cover/addcategories",upload.single('file'),async(req,res)=>
 })
 
 // Add a new photowalk
-app.post('/api/admin/cover/addphotowalk', upload.single('file'), async function (req, res, next) {
+app.post('/api/admin/cover/addphotowalk', upload.single('file'),authenticateToken, async function (req, res, next) {
   const { description , location, genre, date } = req.body;
   const filePath = `/uploads/covers/${req.file.filename}`;
   try {
@@ -289,7 +289,7 @@ app.post('/api/admin/cover/addphotowalk', upload.single('file'), async function 
 })
 
 // Add a new event
-app.post('/api/admin/cover/addevent', upload.single('file'), async function (req, res, next) {
+app.post('/api/admin/cover/addevent', upload.single('file'),authenticateToken, async function (req, res, next) {
   const { description , location, genre, name,date } = req.body;
   const filePath = `/uploads/covers/${req.file.filename}`;
   try {
@@ -307,7 +307,7 @@ app.post('/api/admin/cover/addevent', upload.single('file'), async function (req
  //*--------------------------------------------------------------GALLERY ROUTES
 
  // GET THE IMAGES USED IN GALLERY
-app.get("/api/admin/get/gallery", async (req, res) => {
+app.get("/api/admin/get/gallery",authenticateToken, async (req, res) => {
   try {
     const result = await db.query("SELECT * FROM gallery");
     res.send(result.rows);
@@ -318,7 +318,7 @@ app.get("/api/admin/get/gallery", async (req, res) => {
 });
 
 // POST NEW IMAGES IN GALLERY
-app.post("/api/admin/upload/gallery",upload.single('image'), async (req, res) => {
+app.post("/api/admin/upload/gallery",upload.single('image'),authenticateToken, async (req, res) => {
   const { caption , orientation} =  req.body;
   const filePath = `/uploads/gallery/${req.file.filename}`;
   
@@ -334,7 +334,7 @@ app.post("/api/admin/upload/gallery",upload.single('image'), async (req, res) =>
 });
 
 // DELETE IMAGES FROM GALLERY
-app.delete("/api/admin/delete/gallery/:id", async (req,res) => {
+app.delete("/api/admin/delete/gallery/:id",authenticateToken, async (req,res) => {
   const id = req.params.id;
   const result = await db.query("SELECT image_url FROM gallery WHERE id = $1", [id]);
   if (result.rows.length > 0) {
@@ -347,7 +347,7 @@ app.delete("/api/admin/delete/gallery/:id", async (req,res) => {
 })
 
 // EDIT GALLERY IMAGE DATA
-app.put("/api/admin/edit/gallery/:editingId", async (req,res) => {
+app.put("/api/admin/edit/gallery/:editingId",authenticateToken, async (req,res) => {
   const editingId = req.params.editingId;
   const {caption, orientation} = req.body;
 
@@ -357,7 +357,7 @@ app.put("/api/admin/edit/gallery/:editingId", async (req,res) => {
 })
 
 //*----------------------------------------------------------------HANDLE REVIEWS
-app.get("/api/admin/get/reviews", async (req, res) => {
+app.get("/api/admin/get/reviews",authenticateToken, async (req, res) => {
   try {
     const result = await db.query("SELECT * FROM reviews ORDER BY created_at DESC");
     res.json(result.rows);
@@ -385,7 +385,7 @@ app.post("/api/admin/post/reviews",upload.single('profile_pic') ,async (req, res
 });
 
 // Update an existing review  
-app.put("/api/admin/put/reviews/:id", upload.single('profile_pic'), async (req, res) => {
+app.put("/api/admin/put/reviews/:id", upload.single('profile_pic'),authenticateToken, async (req, res) => {
   const { id }= req.params;
   const { username, review_text, rating } = req.body;
   const filePath =req.file ? `/uploads/reviews/${req.file.filename}` : null;
@@ -403,7 +403,7 @@ app.put("/api/admin/put/reviews/:id", upload.single('profile_pic'), async (req, 
 });
 
 // Delete a review
-app.delete("/api/admin/reviews/:id", async (req, res) => {
+app.delete("/api/admin/reviews/:id",authenticateToken, async (req, res) => {
   const { id } = req.params;
   const result = await db.query("SELECT profile_pic FROM reviews WHERE id = $1", [id]);
  
@@ -421,7 +421,7 @@ app.delete("/api/admin/reviews/:id", async (req, res) => {
 
 //*--------------------------------------------------------------HANDLE MEMBERS
 //GET NEW MEMEBRS
-app.get('/api/society', async (req, res) => {
+app.get('/api/society', authenticateToken,authenticateToken, async (req, res) => {
   try {
       const result = await db.query('SELECT * FROM society');
       res.send(result.rows);
@@ -432,7 +432,7 @@ app.get('/api/society', async (req, res) => {
 });
 
 //POST NEW MEMBERS
-app.post('/api/society', upload.single('profile_pic'), async (req, res) => {
+app.post('/api/society', upload.single('profile_pic'),authenticateToken, async (req, res) => {
   const { member_name, position, description, instagram } = req.body;
   const filePath = `/uploads/society/${req.file.filename}`;
   try { 
@@ -448,7 +448,7 @@ app.post('/api/society', upload.single('profile_pic'), async (req, res) => {
 });
 
 //DELETE NEW MEMBERS
-app.delete('/api/society/:id', async (req, res) => {
+app.delete('/api/society/:id',authenticateToken, async (req, res) => {
   const { id } = req.params;
   const result = await db.query("SELECT profile_pic FROM society WHERE id = $1", [id]);
   if (result.rows.length > 0) {
@@ -464,7 +464,7 @@ app.delete('/api/society/:id', async (req, res) => {
 });
 
 // EDIT OLD MEMBERS
-app.put('/api/society/:id', upload.single('profile_pic'), async (req, res) => {
+app.put('/api/society/:id', upload.single('profile_pic'),authenticateToken, async (req, res) => {
   const { id } = req.params;
   const { member_name, position, description, instagram } = req.body;
   const filePath =req.file ? `/uploads/society/${req.file.filename}` : null;
@@ -488,12 +488,21 @@ app.put('/api/society/:id', upload.single('profile_pic'), async (req, res) => {
 const handleUpdate = async (table, id, name, req, res) => {
   const filePath = req.file ? `/uploads/covers/${req.file.filename}` : null;
   let result;
+
+  // Determine the correct column to update based on the table
+  const columnMap = {
+      categories: 'category',
+      events: 'name',
+      photowalk: 'locations'
+  };
+  const column = columnMap[table];
+
   if (filePath) {
       result = await db.query(`SELECT cover_img FROM ${table} WHERE id = $1`, [id]);
   }
   try {
       await db.query(
-          `UPDATE ${table} SET name = $1, cover_img = COALESCE($2, cover_img) WHERE id = $3`,
+          `UPDATE ${table} SET ${column} = $1, cover_img = COALESCE($2, cover_img) WHERE id = $3`,
           [name, filePath, id]
       );
       if (filePath) deleteFile(result.rows[0].cover_img);
@@ -504,9 +513,13 @@ const handleUpdate = async (table, id, name, req, res) => {
   }
 };
 
-app.put('/api/admin/cover/:type/:id', upload.single('file'), async (req, res) => {
+
+app.put('/api/admin/cover/:type/:id', upload.single('file'),authenticateToken, async (req, res) => {
   const { type, id } = req.params;
   const { name } = req.body;
+  console.log(type)
+  console.log(id)
+  console.log(name)
   const tableMap = {
       categories: 'categories',
       events: 'events',
@@ -533,7 +546,7 @@ const handleDelete = async (table, id, res) => {
   }
 };
 
-app.delete('/api/admin/delete/:type/:id', async (req, res) => {
+app.delete('/api/admin/delete/:type/:id',authenticateToken, async (req, res) => {
   const { type, id } = req.params;
   const tableMap = {
       categories: 'categories',
@@ -559,7 +572,7 @@ const handleCount = async (table, column, id, res) => {
   }
 };
 
-app.get('/api/admin/count/:type/:id', async (req, res) => {
+app.get('/api/admin/count/:type/:id',authenticateToken, async (req, res) => {
   const { type, id } = req.params;
   const countMap = {
       categories: { table: 'images', column: 'category_id' },

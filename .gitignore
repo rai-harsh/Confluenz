@@ -34,3 +34,5 @@ Thumbs.db
 
 # Server uploads (if applicable)
 uploads/
+
+createAdmin.js
