@@ -1,5 +1,6 @@
 import React from "react";
 import { NavLink } from 'react-router-dom';
+import logo from '../assets/conf.png';
 
 export default function Navbar() {
     const [isMenuOpen, setMenuOpen] = React.useState(false);
@@ -36,7 +37,7 @@ export default function Navbar() {
             {/* Navbar */}
             <nav className="bg-local flex p-4 justify-between items-center bg-gradient-to-b from-gray-800 via-gray-900 to-black border-b-2 border-gray-800">
                 <NavLink to="/photowalks" className="min-w-fit">
-                    <img src="./src/assets/conf.png" alt="conf-logo" className="w-20" />
+                    <img src={logo} alt="conf-logo" className="w-20" />
                 </NavLink>
 
                 {/* Desktop menu NavLinks */}
@@ -73,7 +74,7 @@ export default function Navbar() {
                         } inset-0 md:hidden bg-black z-40 flex flex-col px-6 pb-8 pt-3 w-2/3 min-w-fit fixed h-screen`}
                 >
                     <NavLink to="/photowalks" onClick={closeMenu} className="min-w-fit">
-                        <img src="./src/assets/conf.png" alt="conf-logo" className="w-20" />
+                        <img src={logo} alt="conf-logo" className="w-20" />
                     </NavLink>
                     <div className="w-full h-1 bg-slate-300 mt-4 rounded-full"></div>
 

@@ -9,7 +9,11 @@ const db = new pg.Client({
     database: process.env.DB_NAME,
     password: process.env.DB_PASSWORD,
     port: process.env.DB_PORT,
-}) ;
+    ssl: {
+        rejectUnauthorized: false, // Required for Render's managed PostgreSQL
+    },
+});
+
 // Connect to the database
 db.connect()
     .then(() => console.log("Connected to the PostgreSQL database successfully!"))

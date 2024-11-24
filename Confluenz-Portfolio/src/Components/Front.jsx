@@ -1,5 +1,7 @@
 import React from "react";
 import  "../assets/styles/Front.css"
+import logo from '../assets/conf.png';
+
 export default function Front(){
     return(
         <>  
@@ -17,7 +19,7 @@ export default function Front(){
                         </div>
                     </div>
                     <div className=" sm:min-w-96">
-                        <img src="./src/assets/conf.png" className="ml-auto shadowfilter" alt="Laptop-conf" />
+                        <img src={logo} className="ml-auto shadowfilter" alt="Laptop-conf" />
                     </div>
                 </div>
             </div>
