@@ -1,0 +1,25 @@
+.sign {
+    animation: shine 2s infinite alternate, flicker 3s infinite;
+  }
+  
+  /* Shine animation that goes back and forth continuously */
+  @keyframes shine {
+    0% {
+      color: #cdcdcd;
+      text-shadow: none;
+    }
+  
+    100% {
+      color: #ffe6ff;
+      text-shadow: 0 0 0.6rem #ffe6ff, 0 0 1.5rem #ffffff,
+        -0.2rem 0.1rem 1rem #080808, 0.2rem 0.1rem 1rem #0e0000,
+        0 -0.5rem 2rem #000000, 0 0.5rem 3rem #000000;
+    }
+  }
+
+  .shadowfilter {
+    animation: shine 2s infinite alternate, flicker 3s infinite;
+    -webkit-filter: drop-shadow(12px 12px 7px rgba(255, 255, 255, 0.416));
+     filter: drop-shadow(12px 12px 7px rgba(255, 255, 255, 0.349));
+}
+

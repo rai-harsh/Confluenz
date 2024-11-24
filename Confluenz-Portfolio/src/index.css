@@ -1,0 +1,63 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@layer base{
+    .heading {
+        @apply font-beu text-white text-7xl sm:text-9xl font-bold tracking-wide;
+    }
+
+    .wrapper{
+        @apply bg-gray-700  w-11/12;
+        @apply rounded-full;
+        position: fixed;
+        opacity: 90%;
+        padding: 7px;
+        top: 80%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+    
+    .effect{
+        font-weight: bold;
+        font-size: 24px;
+        color: #ffffff;
+        border-top: 2px solid #ffffff;
+        border-bottom: 2px solid #ffffff;
+        padding: 10px 40px;
+        letter-spacing: 2px;
+        transition: all .25s;
+    }
+    /* Parallax effect animation */
+    .card-wrapper {
+        @apply  bg-fixed flex justify-center grayscale brightness-75 hover:brightness-150 hover:grayscale-0 transition duration-1000;
+    }
+    .card-content {
+        @apply backdrop-blur-sm bg-white/30  duration-500 rounded-lg h-fit flex justify-center;
+    }
+    .card-heading {
+        @apply group-hover:text-black text-white bg-clip-text group-hover:bottom-7 duration-500 bottom-7 group-hover:tracking-widest;
+    }
+    .footer-sec{
+        @apply  flex flex-col gap-4
+    }
+    .footer-heading{
+        @apply text-white text-xl font-semibold font-display tracking-tighter my-2 relative after:content-[''] after:absolute after:w-1/2 after:h-[2px] after:bg-gray-300 after:left-1 after:-bottom-1    after:transition-all after:duration-100 hover:after:w-full 
+    }
+    a.active{
+        @apply text-red-500 text-6xl
+    }
+
+}
+
+/* Animation for Description */
+@keyframes fadeSlideUp {
+    0% {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
