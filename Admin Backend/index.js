@@ -1,11 +1,12 @@
 import express from "express";
 import bodyParser from "body-parser";
-import multer from 'multer';
 import path from "path"
 import { fileURLToPath } from 'url';
 import fs from 'fs';
 import cookieParser from "cookie-parser";
 
+import { uploadToCloudinary } from './utils/cloudinary.js';
+import { upload } from './middleware/multer.js';
 
 import { authenticateToken } from './middleware/authMiddleware.js';
 import db from './db/index.js';
@@ -28,55 +29,7 @@ const deleteFile = (DBfilePath) => {
   }
 };
 
-//!------------------------------------------------------------------- Configuring the disk storage for multer
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    // Check if the URL is for the gallery endpoint
-    let categoryPath;
-    if (req.originalUrl.includes("/api/admin/upload/gallery")) {
-      categoryPath = path.join(baseUploadPath, "gallery");
-    } 
-    else if (req.originalUrl.includes("/api/admin/post/reviews")) {
-      categoryPath = path.join(baseUploadPath, "reviews");
-    } 
-    else if (req.originalUrl.includes("/api/admin/put/reviews")) {
-      categoryPath = path.join(baseUploadPath, "reviews");
-    } 
-    else if (req.originalUrl.includes("/api/society")) {
-      categoryPath = path.join(baseUploadPath, "society");
-    } 
-    else if (req.originalUrl.includes("/api/admin/categories/upload")) {
-      categoryPath = path.join(baseUploadPath, "categories");
-    } 
-    else if (req.originalUrl.includes("/api/admin/photowalks/upload")) {
-      categoryPath = path.join(baseUploadPath, "photowalks");
-    } 
-    else if (req.originalUrl.includes("/api/admin/events/upload")) {
-      categoryPath = path.join(baseUploadPath, "events");
-    } 
-    else if (req.originalUrl.includes("/api/admin/cover")) {
-      categoryPath = path.join(baseUploadPath, "covers");
-    } 
-    else {
-      categoryPath = path.join(baseUploadPath,"misc");
-    }
 
-    // Check if the directory exists; if not, create it
-    if (!fs.existsSync(categoryPath)) {
-      fs.mkdirSync(categoryPath, { recursive: true }); // Recursively create directories if needed
-    }
-
-    cb(null, categoryPath);
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() ;
-    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
-  }
-});
-
-
-
-const upload = multer({ storage: storage })
 
 //Info about the express app
 const app = express();
@@ -155,24 +108,25 @@ app.post('/api/admin/categories/upload/:category', upload.single('image'),authen
 //uploading in photowalks
 app.post('/api/admin/photowalks/upload/:walkId', upload.single('image'),authenticateToken, async function (req, res, next) {
   const { walkId } = req.params;
-  console.log(walkId)  ;  
-  
   const { itemId } = req.body;
-  console.log(itemId)
 
-  const filePath = `/uploads/photowalks/${req.file.filename}`;
   try {
-    // Insert image details into database
-    await db.query(
-      "INSERT INTO photowalk_images ( image_url, photowalkid) VALUES ($1, $2)",
-      [filePath,itemId]
-    );
-    res.send("done");
+      // Upload image to Cloudinary
+      const uploadResult = await uploadToCloudinary(req.file.path, 'photowalks');
+
+      // Insert the Cloudinary URL into the database
+      await db.query(
+          'INSERT INTO photowalk_images (image_url, photowalkid) VALUES ($1, $2)',
+          [uploadResult.secure_url, itemId]
+      );
+
+      res.status(200).json({ message: 'Image uploaded successfully', url: uploadResult.secure_url });
   } catch (error) {
-    console.error("Error saving to database:", error);
-    res.status(500).send("Error saving image data to database.");
+      console.error('Error uploading image:', error);
+      res.status(500).send('Error uploading image.');
   }
-})
+}
+);
 
 // uploading in images
 app.post('/api/admin/events/upload/:eventId', upload.single('image'),authenticateToken, async function (req, res, next) {
