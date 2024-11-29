@@ -34,7 +34,7 @@ export default function Photowalks(){
                             location={item.locations}
                             genre={item.genre}
                             date={item.date.slice(0,10)}
-                            source={`http://localhost:4000${item.cover_img}`}
+                            source={`${item.cover_img}`}
                             
                         />
                         )

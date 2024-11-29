@@ -1,4 +1,6 @@
 import { v2 as cloudinary } from 'cloudinary';
+import dotenv from 'dotenv';
+dotenv.config();
 
 // Configure Cloudinary
 cloudinary.config({
@@ -13,15 +15,11 @@ export const uploadToCloudinary = async (filePath, folderName) => {
         const uploadResult = await cloudinary.uploader.upload(filePath, {
             folder: folderName, // Automatically creates the folder if it doesn't exist
             transformation: [
-                {
-                    width: 800, // Resize width
-                    height: 800, // Resize height
-                    crop: "limit", // Limit the resizing to fit within the dimensions
-                },
-                {
-                    quality: "auto", // Automatically optimize image quality
-                },
-            ],
+                { width: 1000, crop: "limit" }, // Resizes the image while maintaining aspect ratio, without cropping
+                { quality: 70 }, // Reduces quality to 70% for optimization
+                { fetch_format: "auto" } // Delivers the image in the best format supported by the user's browser
+            ]
+            
         });
         return uploadResult;
     } catch (error) {

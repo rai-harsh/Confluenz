@@ -20,7 +20,7 @@ export default function Portfolio() {
     const cp = Array(9).fill().map((_, index) => {
         const item = images[index] || {}; // Default to empty object if missing
         return {
-            link: item.image_url ? `http://localhost:4000${item.image_url}` : "/path/to/default.jpg", // Placeholder image if missing
+            link: item.image_url ? `${item.image_url}` : "/path/to/default.jpg", // Placeholder image if missing
             caption: item.caption || "Default caption" // Placeholder caption if missing
         };
     });

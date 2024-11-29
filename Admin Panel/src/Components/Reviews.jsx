@@ -23,41 +23,47 @@ const Reviews = () => {
     };
 
     const handleAddOrEditReview = async () => {
-        
         const formData = new FormData();
-            formData.append('profile_pic', file);
-            formData.append('review_text', reviewText);
-            formData.append('username', username);
-            formData.append('rating', rating);
-
+    
+        // Append common fields
+        formData.append('username', username);
+        formData.append('review_text', reviewText);
+        formData.append('rating', rating);
+    
         if (editingId) {
+            // Editing an existing review
+            try {
+                const response = await axios.put(`/api/admin/put/reviews/${editingId}`, {
+                    username,
+                    review_text: reviewText,
+                    rating,
+                });
+                fetchReviews();
+                setEditingId(null); // Exit edit mode
+            } catch (error) {
+                console.error("Error editing review:", error);
+            }
             
-            const response = await axios.put(`/api/admin/put/reviews/${editingId}`, formData, {
-                headers: { 'Content-Type': 'multipart/form-data' },
-            });
-            fetchReviews();
-            setEditingId(null);
-
         } else {
-        
+            // Adding a new review
+            formData.append('profile_pic', file);
             try {
                 const response = await axios.post(`/api/admin/post/reviews`, formData, {
                     headers: { 'Content-Type': 'multipart/form-data' },
                 });
-                
-                // Add the new review to the state
                 setReviews((prevReviews) => [...prevReviews, response.data]);
-    
             } catch (error) {
-                console.error('Error adding image:', error);
+                console.error("Error adding review:", error);
             }
         }
-        
+    
+        // Reset form
         setFile(null);
         setUsername("");
         setReviewText("");
         setRating(5);
     };
+    
 
     const handleDeleteReview = async (id) => {
         await axios.delete(`/api/admin/reviews/${id}`);
@@ -68,7 +74,7 @@ const Reviews = () => {
 
     return (
         <>
-        <h2 className="text-5xl font-bold text-center mb-4 mt-40 mb-16">Reviews</h2>
+        <h2 className="text-5xl font-bold text-center mb-4 mt-40 sm:mb-16">Reviews</h2>
         <div className="p-6 bg-gray-100 rounded-md shadow-lg max-w-2xl mx-auto ">
 
             <div className = "flex flex-col mb-6 space-y-3">
@@ -94,10 +100,10 @@ const Reviews = () => {
                     onChange={(e) => setRating(e.target.value)}
                     className="p-2 border border-gray-300 rounded-md"
                 />
-                <input
+                { !editingId && <input
                     type="file"
                     onChange={handleFileChange} 
-                />
+                />}
                 <button
                     onClick={handleAddOrEditReview}
                     
@@ -114,7 +120,7 @@ const Reviews = () => {
                     <div key={review.id} className="p-4 border border-gray-300 rounded-md">
                         <div className="flex justify-between items-center mb-2">   
                             <div className="w-16 overflow-clip h-16 rounded-lg">    
-                                <img src={`http://localhost:4000${review.profile_pic}`} className="w-full h-full rounded-lg object-cover object-center" alt="" />
+                                <img src={`${review.profile_pic}`} className="w-full h-full rounded-lg object-cover object-center" alt="" />
                             </div>
                             <h3 className="font-semibold">{review.username}</h3>
                             <div className="text-sm text-gray-500">Rating: {review.rating}</div>
@@ -127,6 +133,8 @@ const Reviews = () => {
                                     setUsername(review.username); // Prefill username
                                     setReviewText(review.review_text);
                                     setRating(review.rating);
+                                    setFile(null);
+
                                 }}
                                 className="bg-yellow-500 text-white px-3 py-1 rounded-md hover:bg-yellow-600"
                             >

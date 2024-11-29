@@ -32,7 +32,7 @@ export default function Gallery({ images }) {
           {imagesToDisplay.map((image, index) => (
             <div key={index} className="h-48 xs:h-56 sm:h-60 md:h-80 brightness-100 hover:brightness-100 relative overflow-hidden rounded-lg shadow-lg">
               <img
-                src={`http://localhost:4000${image.image_url}`}
+                src={`${image.image_url}`}
                 alt={`Gallery Image ${index + 1}`}
                 className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-300"
               />

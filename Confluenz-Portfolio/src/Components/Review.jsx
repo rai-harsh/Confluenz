@@ -22,7 +22,7 @@ export default function Review(props) {
                 {/* Image wrapper with fixed aspect ratio */}
                 <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-200 flex-shrink-0">
                     <img
-                        src={`http://localhost:4000${props.img}`}
+                        src={`${props.img}`}
                         className="w-full h-full object-cover"
                         alt={props.name}
                     />

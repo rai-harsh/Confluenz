@@ -1,7 +1,8 @@
 import React from "react";
-import { NavLink  } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import { Link as ScrollLink } from 'react-scroll';
 import logo from '../assets/conf.png';
+import { useLocation } from "react-router-dom";
 
 
 export default function Navbar() {
@@ -17,21 +18,23 @@ export default function Navbar() {
     setMenuOpen(!isMenuOpen);
   }
 
+  const location = useLocation();
+  const isHomeRoute = location.pathname === "/";
+
   const navLinkClasses = ({ isActive }) => `
   relative text-gray-300 font-display after:content-[''] after:absolute after:right-0 after:-bottom-1 
   after:h-[2px] after:bg-gray-300 after:transition-all after:duration-200 leading-4 hover:after:w-full
   ${isActive ? 'after:w-full' : 'after:w-0'}
 `;
-const mobileNavLinkClasses= ({isActive})=> `font-medium text-slate-300 border-b-2 border-slate-300 hover:bg-slate-500 p-4 rounded-md
+  const mobileNavLinkClasses = ({ isActive }) => `font-medium text-slate-300 border-b-2 border-slate-300 hover:bg-slate-500 p-4 rounded-md
 ${isActive ? `bg-slate-500` : ``}`;
 
   return (
     <>
       <div
         id="overlay"
-        className={`${
-          isMenuOpen ? "" : "hidden"
-        } fixed inset-0 bg-gray-400 bg-opacity-50 duration-75`}
+        className={`${isMenuOpen ? "" : "hidden"
+          } fixed inset-0 bg-gray-400 bg-opacity-50 duration-75`}
         onClick={B}
       ></div>
 
@@ -51,8 +54,13 @@ ${isActive ? `bg-slate-500` : ``}`;
             smooth={true}
             duration={500}
             offset={-70} // Adjust offset for fixed navbar height
-            className="relative text-gray-300 font-display after:content-[''] after:absolute after:right-0 after:-bottom-1 
-              after:h-[2px] after:bg-gray-300 after:transition-all after:duration-200 leading-4 hover:after:w-full after:w-0"
+            className={`relative font-display leading-4 after:content-[''] after:absolute after:right-0 after:-bottom-1 
+            after:h-[2px] after:bg-gray-300 after:transition-all after:duration-200 hover:after:w-full after:w-0
+            ${isHomeRoute
+                ? "text-gray-300 cursor-pointer hover:text-white"
+                : "text-gray-500 cursor-not-allowed"
+              }`}
+            disabled={!isHomeRoute} // Disable the link when not on the home route
           >
             Portfolio
           </ScrollLink>
@@ -77,8 +85,13 @@ ${isActive ? `bg-slate-500` : ``}`;
           </NavLink>
         </div>
 
-        <NavLink to="/Instagram" className="hover:scale-125 transition-all duration-200">
-          <i className="fa-brands fa-instagram text-white w-12 fa-xl hidden md:inline"></i>
+        <NavLink
+          to="https://www.instagram.com/confluenz?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw=="
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-500 hover:underline hover:scale-90  duration-75"
+        >
+          <i className=" fa-brands fa-instagram text-white w-12 fa-xl hidden md:inline"></i>
         </NavLink>
 
         <button id="toggle" className="m-1 md:hidden" onClick={A}>
@@ -87,17 +100,16 @@ ${isActive ? `bg-slate-500` : ``}`;
 
         <div
           id="ham-menu"
-          className={`${
-            isMenuOpen
-              ? "animate-slideIn"
-              : hasTog
+          className={`${isMenuOpen
+            ? "animate-slideIn"
+            : hasTog
               ? "animate-slideOut"
               : "hidden"
-          } inset-0 md:hidden bg-black z-40 flex flex-col px-6 pb-8 pt-3 w-2/3 min-w-fit fixed h-screen`}
+            } inset-0 md:hidden bg-black z-40 flex flex-col px-6 pb-8 pt-3 w-2/3 min-w-fit fixed h-screen`}
         >
-          <NavLink to="/Photowalks" className="min-w-fit">
+          <div   className="min-w-fit">
             <img src={logo} alt="conf-logo" className="w-20" />
-          </NavLink>
+          </div>
           <div className="w-full h-1 bg-slate-300 mt-4 rounded-full"></div>
           <NavLink
             to="/"
@@ -110,7 +122,12 @@ ${isActive ? `bg-slate-500` : ``}`;
             smooth={true}
             duration={500}
             offset={-70} // Adjust offset for fixed navbar height
-            className="font-medium text-slate-300 border-b-2 border-slate-300 hover:bg-slate-500 p-4 rounded-md"
+            className={`font-medium p-4 rounded-md 
+        ${isHomeRoute
+                ? "text-slate-300 border-b-2 border-slate-300 hover:bg-slate-500 cursor-pointer"
+                : "text-gray-500 border-b-2 border-gray-500 cursor-not-allowed"
+              }`}
+            disabled={!isHomeRoute} // Disable the link when not on the home route
           >
             Portfolio
           </ScrollLink>

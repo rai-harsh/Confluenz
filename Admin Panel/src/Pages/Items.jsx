@@ -58,7 +58,14 @@ function Items({ type }) {
                 setNewCategoryImage(null);
                 setIsAdding(false);
             })
-            .catch((error) => console.error(error));
+            .catch((error) =>{ 
+                console.error(error)
+                if (error.response && error.response.status === 400 && error.response.data.error === "File too large. Maximum size allowed is 10MB.") {
+                    alert("Upload failed: The file size exceeds the 10MB limit."); // Alert for file size
+                } else {
+                    alert("An error occurred while uploading the image. Please try again."); // Generic error alert
+                }
+            });
     };
 
     const handleEditCategory = (id, name) => {
@@ -85,7 +92,14 @@ function Items({ type }) {
                 setEditCategoryId(null);
                 setNewCategoryName("");
             })
-            .catch((error) => console.error(error));
+            .catch((error) =>{ 
+                console.error(error)
+                if (error.response && error.response.status === 400 && error.response.data.error === "File too large. Maximum size allowed is 10MB.") {
+                    alert("Upload failed: The file size exceeds the 10MB limit."); // Alert for file size
+                } else {
+                    alert("An error occurred while uploading the image. Please try again."); // Generic error alert
+                }
+            });
     };
 
     const handleDeleteCategory = (id) => {

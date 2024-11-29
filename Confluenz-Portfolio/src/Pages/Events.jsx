@@ -33,7 +33,7 @@ export default function Events(){
                             venue={item.venue}
                             name={item.name}
                             date={item.date.slice(0,10)}
-                            source={`http://localhost:4000${item.cover_img}`}
+                            source={`${item.cover_img}`}
                         />
                         )
                     })

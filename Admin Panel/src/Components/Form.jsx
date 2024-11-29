@@ -41,7 +41,11 @@ const handleFileChange = (e) => {
         })
         .catch(error => {
             console.error('Error uploading image:', error);
-            alert('Image upload failed. Please try again.');
+            if (error.response && error.response.status === 400 && error.response.data.error === "File too large. Maximum size allowed is 10MB.") {
+              alert("Upload failed: The file size exceeds the 10MB limit."); // Alert for file size
+          } else {
+              alert("An error occurred while uploading the image. Please try again."); // Generic error alert
+          }
         });
 };
 

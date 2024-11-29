@@ -56,7 +56,7 @@ export default function AboutUs() {
             >
               <div className="relative">
                 <img
-                  src={`http://localhost:4000${member.profile_pic}`}
+                  src={`${member.profile_pic}`}
                   alt={member.member_name}
                   className="w-full h-56 object-cover"
                 />
@@ -66,20 +66,25 @@ export default function AboutUs() {
                 </h3>
               </div>
               <div className="p-6 space-y-3 text-left">
-                <p className="text-gray-500 font-semibold">{member.position}</p>
-                <p className="text-gray-700 text-sm leading-relaxed">
-                  {member.description}
-                </p>
-                {member.instagram && (
-                  <a
+                <div className="flex justify-between">
+                  
+                  <p className="text-gray-500 font-semibold">{member.position}</p>
+                  {member.instagram && (
+                  <a 
                     href={member.instagram}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-blue-500 hover:underline"
+                    className="text-blue-500 hover:underline hover:scale-90  duration-75"
                   >
-                    Instagram Profile
+                    <i className=" fa-brands fa-instagram text-gray-500 w-12 fa-xl hidden md:inline"></i>
                   </a>
                 )}
+                </div>
+                
+                <p className="text-gray-700 text-sm leading-relaxed">
+                  {member.description}
+                </p>
+                
               </div>
               <div className="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-blue-500 to-purple-600"></div>
             </motion.div>

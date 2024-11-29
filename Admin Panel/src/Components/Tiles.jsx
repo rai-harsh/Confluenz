@@ -60,6 +60,11 @@ const Tiles = () => {
             
         } catch (error) {
             console.error('Error adding image:', error);
+            if (error.response && error.response.status === 400 && error.response.data.error === "File too large. Maximum size allowed is 10MB.") {
+                alert("Upload failed: The file size exceeds the 10MB limit."); // Alert for file size
+            } else {
+                alert("An error occurred while uploading the image. Please try again."); // Generic error alert
+            }
         }
     };
     
@@ -71,7 +76,7 @@ const Tiles = () => {
                 {images.map((image) => (
                     <div key={image.id} className="relative group h-52  hover:brightness-100 overflow-hidden rounded-lg shadow-lg">
                         <img
-                            src={`http://localhost:4000${image.image_url}`}
+                            src={`${image.image_url}`}
                             alt="Category"
                             className="w-full h-full object-cover rounded-md shadow-sm brightness-75"
                         />

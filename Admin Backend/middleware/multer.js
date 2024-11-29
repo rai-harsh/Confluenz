@@ -42,5 +42,26 @@ const storage = multer.diskStorage({
     },
 });
 
-// Export the configured Multer instance
-export const upload = multer({ storage });
+// Configure Multer with limits
+const upload = multer({
+    storage,
+    limits: {
+        fileSize: 10 * 1024 * 1024, // 10 MB in bytes
+    },
+});
+
+// Middleware to handle Multer errors
+export const uploadMiddleware = (fieldName) => (req, res, next) => {
+    const uploadSingle = upload.single(fieldName); // Call .single() here
+    uploadSingle(req, res, (err) => {
+        if (err instanceof multer.MulterError) {
+            if (err.code === 'LIMIT_FILE_SIZE') {
+                return res.status(400).json({ error: "File too large. Maximum size allowed is 10MB." });
+            }
+            return res.status(400).json({ error: err.message });
+        } else if (err) {
+            return res.status(500).json({ error: "File upload error." });
+        } 
+        next();
+    });
+};

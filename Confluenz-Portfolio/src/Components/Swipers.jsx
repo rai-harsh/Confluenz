@@ -47,11 +47,11 @@ export default function Swipers() {
             <div className='wrapper z-10 '>
               <h4 className='effect group-hover:tracking-[0.3rem]'>{item.name}</h4>
             </div>
-            <img src={`http://localhost:4000${item.link}`} className="group-hover:scale-105 duration-700" alt="" />
+            <img src={`${item.link}`} className="group-hover:scale-105 duration-700" alt="" />
           </Link>
         </SwiperSlide>
     )
-  })
+  })  
   return ( 
     
     <div id="portfolio"  className="portfolio text-center bg-gradient-to-b from-white via-gray-400 to-gray-200">

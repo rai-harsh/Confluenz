@@ -59,6 +59,11 @@ export default function MemberForm() {
             fetchMembers();
         } catch (error) {
             console.error("Failed to submit:", error);
+            if (error.response && error.response.status === 400 && error.response.data.error === "File too large. Maximum size allowed is 10MB.") {
+                alert("Upload failed: The file size exceeds the 10MB limit."); // Alert for file size
+            } else {
+                alert("An error occurred while uploading the image. Please try again."); // Generic error alert
+            }
         }
     };
 
@@ -101,7 +106,7 @@ export default function MemberForm() {
                             <div className="flex items-start flex-col w-1/4 gap-2">
                                 <div className="w-16 overflow-clip h-16 rounded-lg">
                                     <img
-                                    src={`http://localhost:4000${member.profile_pic}`} // Ensure this URL is correct from backend
+                                    src={`${member.profile_pic}`} // Ensure this URL is correct from backend
                                     alt="Profile"
                                     className="w-full h-full rounded-lg object-cover object-center"
                                     />

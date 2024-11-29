@@ -6,7 +6,7 @@ import fs from 'fs';
 import cookieParser from "cookie-parser";
 
 import { uploadToCloudinary } from './utils/cloudinary.js';
-import { upload } from './middleware/multer.js';
+import { uploadMiddleware } from './middleware/multer.js';
 
 import { authenticateToken } from './middleware/authMiddleware.js';
 import db from './db/index.js';
@@ -33,7 +33,8 @@ const deleteFile = (DBfilePath) => {
 
 //Info about the express app
 const app = express();
-const port = process.env.PORT||4000;
+// const port = process.env.PORT||4000;
+const port =4000;
 app.use(express.json());
 
 
@@ -84,19 +85,20 @@ app.delete("/api/admin/events/:id",authenticateToken, async (req, res) => {
 
 //Uploading in category
 
-app.post('/api/admin/categories/upload/:category', upload.single('image'),authenticateToken, async function (req, res, next) {
+app.post('/api/admin/categories/upload/:category', uploadMiddleware('image'),authenticateToken, async function (req, res, next) {
   
   const { itemId } = req.body;
   const result = await db.query("SELECT category from categories WHERE id = $1",
     [itemId]
   )
   const category = result.rows[0].category;
-  const filePath = `/uploads/categories/${req.file.filename}`;
   try {
     // Insert image details into database
+    const uploadResult = req.file ? await uploadToCloudinary(req.file.path, 'photowalks') : null;
+
     await db.query(
       "INSERT INTO images (category, image_url, category_id) VALUES ($1, $2,$3)",
-      [category, filePath,itemId]
+      [category, uploadResult.secure_url,itemId]
     );
     res.send("done");
   } catch (error) {
@@ -106,7 +108,7 @@ app.post('/api/admin/categories/upload/:category', upload.single('image'),authen
 })
 
 //uploading in photowalks
-app.post('/api/admin/photowalks/upload/:walkId', upload.single('image'),authenticateToken, async function (req, res, next) {
+app.post('/api/admin/photowalks/upload/:walkId', uploadMiddleware('image'),authenticateToken, async function (req, res, next) {
   const { walkId } = req.params;
   const { itemId } = req.body;
 
@@ -119,7 +121,7 @@ app.post('/api/admin/photowalks/upload/:walkId', upload.single('image'),authenti
           'INSERT INTO photowalk_images (image_url, photowalkid) VALUES ($1, $2)',
           [uploadResult.secure_url, itemId]
       );
-
+   
       res.status(200).json({ message: 'Image uploaded successfully', url: uploadResult.secure_url });
   } catch (error) {
       console.error('Error uploading image:', error);
@@ -129,19 +131,20 @@ app.post('/api/admin/photowalks/upload/:walkId', upload.single('image'),authenti
 );
 
 // uploading in images
-app.post('/api/admin/events/upload/:eventId', upload.single('image'),authenticateToken, async function (req, res, next) {
+app.post('/api/admin/events/upload/:eventId', uploadMiddleware('image'),authenticateToken, async function (req, res, next) {
   const { eventId } = req.params;
   //console.log(walkId)  
   
   const { itemId } = req.body;
   console.log(itemId)
 
-  const filePath = `/uploads/events/${req.file.filename}`;
   try {
+    const uploadResult = req.file ? await uploadToCloudinary(req.file.path, 'photowalks') : null;
+
     // Insert image details into database
     await db.query(
       "INSERT INTO event_images ( image_url, eventid) VALUES ($1, $2)",
-      [filePath,itemId]
+      [uploadResult.secure_url,itemId]
     );
     res.send("done");
   } catch (error) {
@@ -209,14 +212,15 @@ app.get("/api/admin/events/item/:id",async (req,res)=>{
 
 //* --------------------------------------------------------------ADD NEW CATEOGORY, PW, EVENT
 // Add a new category 
-app.post("/api/admin/cover/addcategories",upload.single('file'),async(req,res)=>{
+app.post("/api/admin/cover/addcategories",uploadMiddleware('file'),async(req,res)=>{
   const { name} = req.body;
-  const filePath = `/uploads/covers/${req.file.filename}`;
   
   try{
+    const uploadResult = await uploadToCloudinary(req.file.path, 'photowalks');
+    console.log(uploadResult.secure_url)
     const result =  await db.query(
       "INSERT INTO categories (category,cover_img) VALUES ($1,$2)  RETURNING *", // Adjust table and column names as per your database schema
-      [name,filePath]
+      [name,uploadResult.secure_url]
     );  
     res.status(201).json(result.rows[0]);
   } catch (error) {
@@ -226,14 +230,15 @@ app.post("/api/admin/cover/addcategories",upload.single('file'),async(req,res)=>
 })
 
 // Add a new photowalk
-app.post('/api/admin/cover/addphotowalk', upload.single('file'),authenticateToken, async function (req, res, next) {
+app.post('/api/admin/cover/addphotowalk', uploadMiddleware('file'),authenticateToken, async function (req, res, next) {
   const { description , location, genre, date } = req.body;
-  const filePath = `/uploads/covers/${req.file.filename}`;
   try {
+    const uploadResult = await uploadToCloudinary(req.file.path, 'photowalks');
+
     // Insert image details into database
     await db.query(
       "INSERT INTO photowalk (locations, description, cover_img , genre, date) VALUES ($1, $2,$3, $4, $5) ",
-      [location, description, filePath, genre, date]
+      [location, description, uploadResult.secure_url, genre, date]
     );
     res.send("done");
   } catch (error) {
@@ -243,14 +248,15 @@ app.post('/api/admin/cover/addphotowalk', upload.single('file'),authenticateToke
 })
 
 // Add a new event
-app.post('/api/admin/cover/addevent', upload.single('file'),authenticateToken, async function (req, res, next) {
+app.post('/api/admin/cover/addevent', uploadMiddleware('file'),authenticateToken, async function (req, res, next) {
   const { description , location, genre, name,date } = req.body;
-  const filePath = `/uploads/covers/${req.file.filename}`;
   try {
+    const uploadResult = await uploadToCloudinary(req.file.path, 'photowalks');
+
     // Insert image details into database
     await db.query(
       "INSERT INTO events (venue, description, cover_img , genre , name,date) VALUES ($1, $2,$3, $4, $5, $6 ) ",
-      [location, description, filePath, genre, name,date]
+      [location, description, uploadResult.secure_url, genre, name,date]
     );
     res.send("done");
   } catch (error) {
@@ -272,20 +278,22 @@ app.get("/api/admin/get/gallery",authenticateToken, async (req, res) => {
 });
 
 // POST NEW IMAGES IN GALLERY
-app.post("/api/admin/upload/gallery",upload.single('image'),authenticateToken, async (req, res) => {
+app.post("/api/admin/upload/gallery",uploadMiddleware('image'),authenticateToken, async (req, res) => {
   const { caption , orientation} =  req.body;
-  const filePath = `/uploads/gallery/${req.file.filename}`;
   
   try {
+    const uploadResult = await uploadToCloudinary(req.file.path, 'photowalks');
     const result = await db.query("INSERT INTO gallery (image_url, caption, orientation) VALUES ($1,$2,$3)",
-      [filePath,caption,orientation]
+      [uploadResult.secure_url,caption,orientation]
     );
+    //res.status(200).json({ message: 'Image uploaded successfully', url: uploadResult.secure_url });
     res.send(result.rows);
   } catch (error) {
-    console.error("Error fetching gallery images:", error);
-    res.status(500).json({ error: "Error fetching gallery images" });
+    console.error('Error uploading image:', error);
+    res.status(500).send('Error uploading image.');
   }
 });
+
 
 // DELETE IMAGES FROM GALLERY
 app.delete("/api/admin/delete/gallery/:id",authenticateToken, async (req,res) => {
@@ -304,10 +312,12 @@ app.delete("/api/admin/delete/gallery/:id",authenticateToken, async (req,res) =>
 app.put("/api/admin/edit/gallery/:editingId",authenticateToken, async (req,res) => {
   const editingId = req.params.editingId;
   const {caption, orientation} = req.body;
-
+  
+  console.log(orientation);
   await db.query("UPDATE gallery SET caption = $1, orientation = $2	WHERE id = $3",
     [caption,orientation,editingId]
   )
+  res.status(200).send("Edited successfully")
 })
 
 //*----------------------------------------------------------------HANDLE REVIEWS
@@ -322,14 +332,14 @@ app.get("/api/admin/get/reviews",authenticateToken, async (req, res) => {
 });
 
 // Add a new review
-app.post("/api/admin/post/reviews",upload.single('profile_pic') ,async (req, res) => {
+app.post("/api/admin/post/reviews",uploadMiddleware('profile_pic') ,async (req, res) => {
   const { username, review_text, rating } = req.body;
-  const filePath = `/uploads/reviews/${req.file.filename}`;
-  console.log(req.file)
+  // console.log(req.file)
   try {
+    const uploadResult = await uploadToCloudinary(req.file.path, 'photowalks');
     const result = await db.query(
       "INSERT INTO reviews (username, review_text, rating,profile_pic) VALUES ($1, $2, $3, $4) RETURNING *",
-      [username, review_text, rating, filePath]
+      [username, review_text, rating, uploadResult.secure_url]
     );
     res.send(result.rows[0])
   } catch (error) {
@@ -338,16 +348,15 @@ app.post("/api/admin/post/reviews",upload.single('profile_pic') ,async (req, res
   }
 });
 
-// Update an existing review  
-app.put("/api/admin/put/reviews/:id", upload.single('profile_pic'),authenticateToken, async (req, res) => {
+// Update an existing review   
+app.put("/api/admin/put/reviews/:id",authenticateToken, async (req, res) => {
   const { id }= req.params;
   const { username, review_text, rating } = req.body;
-  const filePath =req.file ? `/uploads/reviews/${req.file.filename}` : null;
-  console.log(req.file)
   try {
+
     const result = await db.query(
-      "UPDATE reviews SET username = $1, review_text = $2, rating = $3, profile_pic = COALESCE($4, profile_pic) WHERE id = $5 RETURNING *",
-      [username, review_text, rating, filePath, id]
+      "UPDATE reviews SET username = $1, review_text = $2, rating = $3 WHERE id = $4 RETURNING *",
+      [username, review_text, rating,id]
     );
     res.send(result.rows[0])
   } catch (error) {
@@ -386,13 +395,14 @@ app.get('/api/society', authenticateToken,authenticateToken, async (req, res) =>
 });
 
 //POST NEW MEMBERS
-app.post('/api/society', upload.single('profile_pic'),authenticateToken, async (req, res) => {
+app.post('/api/society', uploadMiddleware('profile_pic'),authenticateToken, async (req, res) => {
   const { member_name, position, description, instagram } = req.body;
-  const filePath = `/uploads/society/${req.file.filename}`;
   try { 
+    const uploadResult = await uploadToCloudinary(req.file.path, 'photowalks');
+
       const result = await db.query(
           'INSERT INTO society (member_name, position, description, instagram, profile_pic) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-          [member_name, position, description, instagram, filePath]
+          [member_name, position, description, instagram, uploadResult.secure_url]
       );
       res.json(result.rows[0]);
   } catch (error) {
@@ -418,17 +428,18 @@ app.delete('/api/society/:id',authenticateToken, async (req, res) => {
 });
 
 // EDIT OLD MEMBERS
-app.put('/api/society/:id', upload.single('profile_pic'),authenticateToken, async (req, res) => {
+app.put('/api/society/:id', uploadMiddleware('profile_pic'),authenticateToken, async (req, res) => {
   const { id } = req.params;
   const { member_name, position, description, instagram } = req.body;
-  const filePath =req.file ? `/uploads/society/${req.file.filename}` : null;
   try {
+        const uploadResult = req.file ? await uploadToCloudinary(req.file.path, 'photowalks') : null;
+
       const query = `
           UPDATE society
           SET member_name = $1, position = $2, description = $3, instagram = $4, profile_pic = COALESCE($5, profile_pic)
           WHERE id = $6 RETURNING *
       `;
-      const result = await db.query(query, [member_name, position, description, instagram, filePath, id]);
+      const result = await db.query(query, [member_name, position, description, instagram, uploadResult.secure_url, id]);
       res.json(result.rows[0]);
   } catch (error) {
       console.error(error);
@@ -440,35 +451,59 @@ app.put('/api/society/:id', upload.single('profile_pic'),authenticateToken, asyn
 
 // Helper function to handle update logic with file upload and existing file deletion
 const handleUpdate = async (table, id, name, req, res) => {
-  const filePath = req.file ? `/uploads/covers/${req.file.filename}` : null;
+  let filePath = null;
+
+  try {
+    // Try uploading the file if it exists
+    if (req.file) {
+      filePath = await uploadToCloudinary(req.file.path, 'photowalks');
+    }
+  } catch (uploadError) {
+    console.error("Error uploading to Cloudinary:", uploadError);
+    return res.status(500).send({ message: "Error uploading file to Cloudinary" });
+  }
+
   let result;
 
-  // Determine the correct column to update based on the table
+  // Map columns to their respective tables
   const columnMap = {
-      categories: 'category',
-      events: 'name',
-      photowalk: 'locations'
+    categories: 'category',
+    events: 'name',
+    photowalk: 'locations'
   };
   const column = columnMap[table];
 
   if (filePath) {
+    try {
+      // Get existing file path if updating
       result = await db.query(`SELECT cover_img FROM ${table} WHERE id = $1`, [id]);
+    } catch (dbSelectError) {
+      console.error("Error fetching existing file path from database:", dbSelectError);
+      return res.status(500).send({ message: "Error fetching existing file from database" });
+    }
   }
+
   try {
-      await db.query(
-          `UPDATE ${table} SET ${column} = $1, cover_img = COALESCE($2, cover_img) WHERE id = $3`,
-          [name, filePath, id]
-      );
-      if (filePath) deleteFile(result.rows[0].cover_img);
-      res.status(200).send({ message: `${table} updated successfully` });
-  } catch (error) {
-      console.error(error);
-      res.status(500).send(`Error updating ${table}`);
+    // Perform the update
+    await db.query(
+      `UPDATE ${table} SET ${column} = $1, cover_img = COALESCE($2, cover_img) WHERE id = $3`,
+      [name, filePath?.secure_url, id]
+    );
+
+    // Delete the old file if a new one was uploaded
+    if (filePath && result?.rows[0]?.cover_img) {
+      deleteFile(result.rows[0].cover_img);
+    }
+
+    res.status(200).send({ message: `${table} updated successfully` });
+  } catch (dbUpdateError) {
+    console.error("Error updating the database:", dbUpdateError);
+    res.status(500).send(`Error updating ${table}`);
   }
 };
+ 
 
-
-app.put('/api/admin/cover/:type/:id', upload.single('file'),authenticateToken, async (req, res) => {
+app.put('/api/admin/cover/:type/:id', uploadMiddleware('file'),authenticateToken, async (req, res) => {
   const { type, id } = req.params;
   const { name } = req.body;
   console.log(type)
@@ -486,6 +521,7 @@ app.put('/api/admin/cover/:type/:id', upload.single('file'),authenticateToken, a
       res.status(400).send("Invalid type parameter");
   }
 });
+
 //* ----------------------------------- Routes to delete categories, events, and photowalks with file handling
 // Helper function to delete an item and its associated file
 const handleDelete = async (table, id, res) => {
@@ -514,6 +550,7 @@ app.delete('/api/admin/delete/:type/:id',authenticateToken, async (req, res) => 
       res.status(400).send("Invalid type parameter");
   }
 });
+
 //*---------------------------- Routes to get count of associated images for categories, events, and photowalks
 // Helper function for counting items in related tables
 const handleCount = async (table, column, id, res) => {
@@ -542,7 +579,6 @@ app.get('/api/admin/count/:type/:id',authenticateToken, async (req, res) => {
 });
 
  
-
 app.listen(port, () => {
     console.log(`Server running on http://localhost:${port}`);
 });
